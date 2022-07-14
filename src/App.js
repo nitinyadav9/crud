@@ -1,23 +1,41 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from "react";
+import "./App.css";
+import db from "./firebase-config";
+import { collection, getDocs, addDoc } from "firebase/firestore";
 
 function App() {
+  const[newName, setName] = useState("")
+  const[newAge,setAge] = useState(0)
+  const [users, setUsers] = useState([]);
+  //setUsers(...users)
+  const usersCollectionRef = collection(db, "users");
+  const createUser =async()=>{
+    await addDoc(usersCollectionRef,{name: newName, age: newAge})
+  }
+  useEffect(() => {
+    const getUsers = async () => {
+      const data = await getDocs(usersCollectionRef);
+
+      setUsers(data.docs.map((doc) => ({...doc.data() ,id:doc.id})));
+    };
+    getUsers();
+  }, []);
+  
+   
+
   return (
+
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <input  placeholder="Name..." onChange={event=>{setName(event.target.value)}}/>
+      <input type='number' placeholder="Age..." onChange={event=>{setAge(event.target.value)}}/>
+    <button onClick={createUser}>Create User</button>
+      {users.map((user) => {
+        return(
+        <div>
+          <h1>{user.name}</h1>
+          <h1>{user.age}</h1>
+        </div>);
+      })}
     </div>
   );
 }
